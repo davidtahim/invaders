@@ -11,6 +11,8 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 
 import com.invaders.Invader.Tipos;
+import com.invaders.Tanque;
+
 import com.invaders.base.Elemento;
 import com.invaders.base.Texto;
 
@@ -112,8 +114,42 @@ public class Jogo extends JFrame {
 
     private void carregarJogo(){
 
-        
+    tanque = new Tanque();
+    tanque.setVel(3);
+    tanque.setAtivo(true);
+    tanque.setPx(tela.getWidth()/2 - tanque.getLargura()/2);
+    tanque.setPy(tela.getHeight() - tanque.getAltura()-linhaBase);
+
+    tiroTanque = new Tiro();
+    tiroTanque.setVel(-15);
+
+    chefe = new Invader(Invader.Tipos.CHEFE);
+    tiroChefe = new Tiro(true);
+    tiroChefe.setVel(20);
+    tiroChefe.setAltura(15);
+
+    for (int i = 0; i < tiros.length; i++) {
+        tiros[i] = new Tiro(true);
+    }
+
+    for (int i = 0; i < invasores.length; i++) {
+        for (int j = 0; j < invasores[i].length; j++) {
+            Invader e = new Invader(tipoPorLinha[j]);
+            e.setAtivo(true);
+            e.setPx(i*e.getAltura() + (i+1) * espacamento);
+            e.setPy(j*e.getAltura() + j *espacamento+linhaBase);
+            invasores[i][j] = e;
+        }
 
     }
 
+    dir = 1;
+    totalInimigos = invasores.length * invasores[0].length;
+    contadorEspera = totalInimigos/level;
+
+    }
+
+
+
+    
 }
