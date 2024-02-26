@@ -5,9 +5,14 @@ import java.awt.Graphics;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.image.BufferedImage;
+import java.util.Random;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
+
+import com.invaders.Invader.Tipos;
+import com.invaders.base.Elemento;
+import com.invaders.base.Texto;
 
 public class Jogo extends JFrame {
     private static final int FPS = 1000 / 20;
@@ -57,7 +62,7 @@ public class Jogo extends JFrame {
 
     }
 
-    private void setaTecla(int tecla, boolean pressionada){
+    private void setaTecla(int tecla, boolean pressionada) {
         switch (tecla) {
             case KeyEvent.VK_UP:
                 controleTecla[0] = pressionada;
@@ -74,13 +79,41 @@ public class Jogo extends JFrame {
             case KeyEvent.VK_SPACE:
                 controleTecla[4] = pressionada;
                 break;
-        
+
         }
 
-    } 
+    }
 
     // Elementos do Jogo linha 97
+    private int vidas = 3;
 
+    private Elemento vida = new Tanque();
+    private Elemento tiroTanque;
+    private Elemento tiroChefe;
+    private Elemento[] tiros = new Tiro[3];
+    private Texto texto = new Texto();
+    private Invader chefe;
+    private Elemento tanque;
+    private Invader[][] invasores = new Invader[11][5];
+    private Invader.Tipos[] tipoPorLinha = { Tipos.PEQUENO, Tipos.MEDIO, Tipos.MEDIO, Tipos.GRANDE, Tipos.GRANDE };
 
+    private int linhaBase = 60;
+    private int espacamento = 15;
+    private int destruidos = 0;
+    private int dir;
+    private int totalInimigos;
+    private int contadorEspera;
+    boolean novaLinha;
+    boolean moverInimigos;
+    private int contador;
+    private int pontos;
+    private int level = 1;
+    private Random rand = new Random();
+
+    private void carregarJogo(){
+
+        
+
+    }
 
 }
