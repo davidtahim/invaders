@@ -1,6 +1,7 @@
 package com.invaders;
 
 import java.awt.Graphics2D;
+import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
@@ -15,6 +16,7 @@ import com.invaders.Tanque;
 
 import com.invaders.base.Elemento;
 import com.invaders.base.Texto;
+import com.invaders.base.Util;
 
 public class Jogo extends JFrame {
     private static final int FPS = 1000 / 20;
@@ -150,6 +152,116 @@ public class Jogo extends JFrame {
     }
 
 
+public void iniciarJogo(){
+    long prxAtualizacao = 0; 
 
-    
+    while (true) {
+        if (System.currentTimeMillis()>= prxAtualizacao) {
+            g2d.setColor(Color.BLACK);
+            g2d.fillRect(0, 0, JANELA_LARGURA, JANELA_ALTURA); 
+
+
+            if (destruidos==totalInimigos) {
+                destruidos=0;
+                level++;
+                carregarJogo();
+                
+                continue;
+            }
+
+            if (contador>contadorEspera) {
+                moverInimigos = true;
+                contador=0;
+                contadorEspera=totalInimigos- destruidos - level*level;
+
+                
+            } else {
+               contador++; 
+            }
+
+            if (tanque.isAtivo()) {
+
+                if (controleTecla[2]) {
+
+                    tanque.setPx(tanque.getPx()-tanque.getVel());
+
+                    
+                } else if (controleTecla[3]) {
+                    
+                    
+                    tanque.setPx(tanque.getPx()+tanque.getVel());
+
+                } 
+                    
+                }
+
+                if (controleTecla[4] && !tiroTanque.isAtivo()) {
+
+                    tiroTanque.setPx(tanque.getPx() + tanque.getLargura()/2 - tiroTanque.getLargura()/2);
+                    tiroTanque.setPy(tanque.getPy()-tiroTanque.getAltura());
+                    tiroTanque.setAtivo(true);
+
+                    
+                }
+
+                if (chefe.isAtivo()) {
+                    chefe.incPx(tanque.getVel()-1);
+
+                    if (!tiroChefe.isAtivo() && Util.colideX(chefe, tanque)) {
+                        addTiroInimigo(chefe, tiroChefe);
+                        
+                    }
+
+                    if (chefe.getPx() > tela.getWidth()) {
+                        chefe.setAtivo(false);
+                        
+                    }
+
+                    
+                }
+                 boolean colideBordas = false;
+                
+                // linhas
+                 for (int j = invasores[0].length - 1; j >=0; j--) {
+                    // colunas
+                    for (int i = 0; i < invasores.length; i++) {
+                        Invader inv = invasores[i][j];
+                        
+                        if (!inv.isAtivo()) {
+                            continue;
+                        }
+
+                        if (Util.colide(tiroTanque,inv)) {
+                            inv.setAtivo(false);
+                            tiroTanque.setAtivo(false);
+
+                            destruidos++;
+                            pontos = pontos+inv.getPremio()*level;
+
+                            continue;
+                            
+                        }
+
+                        
+
+
+                    }
+                }
+                
+            }
+
+
+
+        }
+        
+    }
+
+private void addTiroInimigo(Invader chefe2, Elemento tiroChefe2) {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'addTiroInimigo'");
 }
+
+
+}
+    
+
