@@ -6,9 +6,14 @@ import java.awt.Graphics;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.image.BufferedImage;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.Random;
 
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 import com.invaders.Invader.Tipos;
@@ -152,115 +157,230 @@ public class Jogo extends JFrame {
     }
 
 
-public void iniciarJogo(){
-    long prxAtualizacao = 0; 
+    public void iniciarJogo() {
+        long prxAtualizacao = 0;
 
-    while (true) {
-        if (System.currentTimeMillis()>= prxAtualizacao) {
-            g2d.setColor(Color.BLACK);
-            g2d.fillRect(0, 0, JANELA_LARGURA, JANELA_ALTURA); 
+        while (true) {
+            if (System.currentTimeMillis() >= prxAtualizacao) {
 
+                g2d.setColor(Color.BLACK);
+                g2d.fillRect(0, 0, JANELA_LARGURA, JANELA_ALTURA);
 
-            if (destruidos==totalInimigos) {
-                destruidos=0;
-                level++;
-                carregarJogo();
-                
-                continue;
-            }
+                if (destruidos == totalInimigos) {
+                    destruidos = 0;
+                    level++;
+                    carregarJogo();
 
-            if (contador>contadorEspera) {
-                moverInimigos = true;
-                contador=0;
-                contadorEspera=totalInimigos- destruidos - level*level;
-
-                
-            } else {
-               contador++; 
-            }
-
-            if (tanque.isAtivo()) {
-
-                if (controleTecla[2]) {
-
-                    tanque.setPx(tanque.getPx()-tanque.getVel());
-
-                    
-                } else if (controleTecla[3]) {
-                    
-                    
-                    tanque.setPx(tanque.getPx()+tanque.getVel());
-
-                } 
-                    
+                    continue;
                 }
 
+                if (contador > contadorEspera) {
+                    moverInimigos = true;
+                    contador = 0;
+                    contadorEspera = totalInimigos - destruidos - level * level;
+
+                } else {
+                    contador++;
+                }
+
+                if (tanque.isAtivo()) {
+                    if (controleTecla[2]) {
+                        tanque.setPx(tanque.getPx() - tanque.getVel());
+
+                    } else if (controleTecla[3]) {
+                        tanque.setPx(tanque.getPx() + tanque.getVel());
+                    }
+                }
+
+                // Pressionou espaco, adiciona tiro
                 if (controleTecla[4] && !tiroTanque.isAtivo()) {
-
-                    tiroTanque.setPx(tanque.getPx() + tanque.getLargura()/2 - tiroTanque.getLargura()/2);
-                    tiroTanque.setPy(tanque.getPy()-tiroTanque.getAltura());
+                    tiroTanque.setPx(tanque.getPx() + tanque.getLargura() / 2 - tiroTanque.getLargura() / 2);
+                    tiroTanque.setPy(tanque.getPy() - tiroTanque.getAltura());
                     tiroTanque.setAtivo(true);
-
-                    
                 }
 
                 if (chefe.isAtivo()) {
-                    chefe.incPx(tanque.getVel()-1);
+                    chefe.incPx(tanque.getVel() - 1);
 
                     if (!tiroChefe.isAtivo() && Util.colideX(chefe, tanque)) {
                         addTiroInimigo(chefe, tiroChefe);
-                        
                     }
 
                     if (chefe.getPx() > tela.getWidth()) {
                         chefe.setAtivo(false);
-                        
                     }
-
-                    
                 }
-                 boolean colideBordas = false;
-                
-                // linhas
-                 for (int j = invasores[0].length - 1; j >=0; j--) {
-                    // colunas
+
+                boolean colideBordas = false;
+
+                // Percorrendo primeiro as linhas, de baixo para cima
+                for (int j = invasores[0].length - 1; j >= 0; j--) {
+
+                    // Depois as colunas
                     for (int i = 0; i < invasores.length; i++) {
+
                         Invader inv = invasores[i][j];
-                        
+
                         if (!inv.isAtivo()) {
                             continue;
                         }
 
-                        if (Util.colide(tiroTanque,inv)) {
+                        if (Util.colide(tiroTanque, inv)) {
                             inv.setAtivo(false);
                             tiroTanque.setAtivo(false);
 
                             destruidos++;
-                            pontos = pontos+inv.getPremio()*level;
+                            pontos = pontos + inv.getPremio() * level;
 
                             continue;
-                            
                         }
 
-                        
+                        if (moverInimigos) {
 
+                            inv.atualiza();
+
+                            if (novaLinha) {
+                                inv.setPy(inv.getPy() + inv.getAltura() + espacamento);
+                            } else {
+                                inv.incPx(espacamento * dir);
+                            }
+
+                            if (!novaLinha && !colideBordas) {
+                                int pxEsq = inv.getPx() - espacamento;
+                                int pxDir = inv.getPx() + inv.getLargura() + espacamento;
+
+                                if (pxEsq <= 0 || pxDir >= tela.getWidth())
+                                    colideBordas = true;
+                            }
+
+                            if (!tiros[0].isAtivo() && inv.getPx() < tanque.getPx()) {
+                                addTiroInimigo(inv, tiros[0]);
+
+                            } else if (!tiros[1].isAtivo() && inv.getPx() > tanque.getPx() && inv.getPx() < tanque.getPx() + tanque.getLargura()) {
+                                addTiroInimigo(inv, tiros[1]);
+
+                            } else if (!tiros[2].isAtivo() && inv.getPx() > tanque.getPx()) {
+                                addTiroInimigo(inv, tiros[2]);
+
+                            }
+
+                            if (!chefe.isAtivo() && rand.nextInt(500) == destruidos) {
+                                chefe.setPx(0);
+                                chefe.setAtivo(true);
+
+                            }
+
+                        }
 
                     }
                 }
-                
+
+                if (moverInimigos && novaLinha) {
+                    dir *= -1;
+                    novaLinha = false;
+
+                } else if (moverInimigos && colideBordas) {
+                    novaLinha = true;
+                }
+
+                moverInimigos = false;
+
+                if (tiroTanque.isAtivo()) {
+                    tiroTanque.incPy(tiroTanque.getVel());
+
+                    if (Util.colide(tiroTanque, chefe)) {
+                        pontos = pontos + chefe.getPremio() * level;
+                        chefe.setAtivo(false);
+                        tiroTanque.setAtivo(false);
+
+                    } else if (tiroTanque.getPy() < 0) {
+                        tiroTanque.setAtivo(false);
+                    }
+
+                }
+
+                if (tiroChefe.isAtivo()) {
+                    tiroChefe.incPy(tiroChefe.getVel());
+
+                    if (Util.colide(tiroChefe, tanque)) {
+                        vidas--;
+                        tiroChefe.setAtivo(false);
+
+                    } else if (tiroChefe.getPy() > tela.getHeight() - linhaBase - tiroChefe.getAltura()) {
+                        tiroChefe.setAtivo(false);
+                    }
+
+                }
+
+                for (int i = 0; i < tiros.length; i++) {
+                    if (tiros[i].isAtivo()) {
+                        tiros[i].incPy(+10);
+
+                        if (Util.colide(tiros[i], tanque)) {
+                            vidas--;
+                            tiros[i].setAtivo(false);
+
+                        } else if (tiros[i].getPy() > tela.getHeight() - linhaBase - tiros[i].getAltura())
+                            tiros[i].setAtivo(false);
+
+                    }
+                }
+
+                tanque.atualiza();
+
+                chefe.atualiza();
+
+                g2d.setColor(Color.WHITE);
+
+                texto.desenha(g2d, String.valueOf(pontos), 10, 20);
+                texto.desenha(g2d, "Level " + level, tela.getWidth() - 100, 20);
+                texto.desenha(g2d, String.valueOf(vidas), 10, tela.getHeight() - 10);
+
+                tela.repaint();
+
+                prxAtualizacao = System.currentTimeMillis() + FPS;
             }
 
-
-
+            // Fim do jogo quando a classe vida for igual a zero
+            if (vidas == 0) {
+                JOptionPane.showMessageDialog(null, "Fim do jogo. Sua pontuação: " + pontos);
+                registrarPontuacao();
+                dispose(); // Fecha o jogo
+                break;
+            }
         }
-        
+
     }
 
-private void addTiroInimigo(Invader chefe2, Elemento tiroChefe2) {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("Unimplemented method 'addTiroInimigo'");
-}
+private void registrarPontuacao(){
+    try (Connection conn= DriverManager.getConnection("jdbc:mysql://localhost:3306/invaders","root","" )){
+        String sql ="INSERT INTO ranking (nomejogador,level,pontuacao) VALUES (?,?,?)";
+        try (PreparedStatement pstmt = conn PreparedStatement(sql)){
+            pstmt.setString(1, nomeJogador);
+            pstmt.setInt(2, level);
+            pstmt.setInt(3, pontos);
+            pstmt.executeUpdate();            
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } catch(SQLException e) {
+            e.printStackTrace();
+        }
+    }
+} 
 
+public void addTiroInimigo(Elemento inimigo, Elemento tiro){
+tiro.setAtivo(true);
+tiro.setPx(inimigo.getPx() + inimigo.getLargura() / 2 - tiro.getLargura() / 2);
+tiro.setPy(inimigo.getPy() + inimigo.getAltura());
+
+} 
+
+public static void main(String[] args) {
+    String nomeJogador = JOptionPane.showInputDialog(null, "Digite seu nome:"); 
+
+
+    
+}
 
 }
     
