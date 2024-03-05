@@ -376,10 +376,16 @@ tiro.setPy(inimigo.getPy() + inimigo.getAltura());
 } 
 
 public static void main(String[] args) {
-    String nomeJogador = JOptionPane.showInputDialog(null, "Digite seu nome:"); 
+    String nomeJogador = JOptionPane.showInputDialog(null, "Digite seu nome: "); 
+if (nomeJogador!=null && !nomeJogador.isEmpty()) {
+    Jogo jogo = new Jogo(nomeJogador);
+    jogo.carregarJogo();
+    jogo.iniciarJogo();
+} else {
+    JOptionPane.showMessageDialog(null," nome inválido. O jogo será encerrado");
+}
 
 
-    
 }
 
 }
